@@ -9,7 +9,6 @@ declare namespace RNTrackPlayer {
     | "playback-error"
     | "playback-queue-ended"
     | "playback-track-changed"
-    | "playback-metadata-received"
     | "remote-play"
     | "remote-play-id"
     | "remote-play-search"
@@ -25,7 +24,8 @@ declare namespace RNTrackPlayer {
     | "remote-duck"
     | "remote-like"
     | "remote-dislike"
-    | "remote-bookmark";
+    | "remote-bookmark"
+    | "remote-play-pause";
 
   export type TrackType =
     | "default"
@@ -38,7 +38,6 @@ declare namespace RNTrackPlayer {
   type State = string | number;
   type RatingType = string | number;
   type Capability = string | number;
-  type PitchAlgorithm = string | number;
 
   type EventHandler = (type: EventType, ...args: any[]) => void;
   export function registerEventHandler(handler: EventHandler): void;
@@ -62,12 +61,9 @@ declare namespace RNTrackPlayer {
   }
 
   export interface Track extends TrackMetadata {
-    id: string;
-    url: string | ResourceObject;
     type?: TrackType;
     userAgent?: string;
     contentType?: string;
-    pitchAlgorithm?: PitchAlgorithm;
     [key: string]: any;
   }
 
@@ -75,7 +71,6 @@ declare namespace RNTrackPlayer {
     minBuffer?: number;
     maxBuffer?: number;
     playBuffer?: number;
-    backBuffer?: number;
     maxCacheSize?: number;
     iosCategory?: 'playback' | 'playAndRecord' | 'multiRoute' | 'ambient' | 'soloAmbient' | 'record';
     iosCategoryMode?: 'default' | 'gameChat' | 'measurement' | 'moviePlayback' | 'spokenAudio' | 'videoChat' | 'videoRecording' | 'voiceChat' | 'voicePrompt';
@@ -98,7 +93,8 @@ declare namespace RNTrackPlayer {
     dislikeOptions?: FeedbackOptions;
     bookmarkOptions?: FeedbackOptions;
     stopWithApp?: boolean;
-    alwaysPauseOnInterruption?: boolean; // default: false
+    alwaysPauseOnInterruption?: boolean;
+    hideArtworkLockScreenBackground?: boolean;
 
     capabilities?: Capability[];
     notificationCapabilities?: Capability[];
@@ -113,48 +109,23 @@ declare namespace RNTrackPlayer {
     rewindIcon?: ResourceObject;
     forwardIcon?: ResourceObject;
     color?: number;
+
+    placeholderImage?: ResourceObject;
   }
 
   // General
 
   export function setupPlayer(options?: PlayerOptions): Promise<void>;
-  export function destroy(): void;
 
   // Player Queue Commands
 
-  export function add(tracks: Track | Track[], insertBeforeId?: string): Promise<void>;
-  export function remove(trackIds: string | string[]): Promise<void>;
-  export function skip(trackId: string): Promise<void>;
-  export function skipToNext(): Promise<void>;
-  export function skipToPrevious(): Promise<void>;
-  export function removeUpcomingTracks(): Promise<void>;
+  export function setNowPlaying(track: Track): Promise<void>;
+  export function updatePlayback(data: any): Promise<void>;
+  export function reset(): Promise<void>;
 
   // Control Center / Notification Metadata Commands
   export function updateOptions(options: MetadataOptions): Promise<void>;
   export function updateMetadataForTrack(id: string, metadata: TrackMetadata) : Promise<void>;
-
-  // Player Playback Commands
-
-  export function reset(): Promise<void>;
-  export function play(): Promise<void>;
-  export function pause(): Promise<void>;
-  export function stop(): Promise<void>;
-  export function seekTo(seconds: number): Promise<void>;
-  export function setVolume(level: number): Promise<void>;
-  export function setRate(rate: number): Promise<void>;
-
-  // Player Getters
-
-  export function getQueue(): Promise<Track[]>;
-  export function getTrack(id: string): Promise<Track>;
-  export function getCurrentTrack(): Promise<string>;
-  export function getVolume(): Promise<number>;
-  export function getDuration(): Promise<number>;
-  export function getPosition(): Promise<number>;
-  export function getBufferedPosition(): Promise<number>;
-  export function getState(): Promise<State>;
-  export function getRate(): Promise<number>;
-
   // Components
 
   export interface ProgressComponentState {
@@ -200,45 +171,4 @@ declare namespace RNTrackPlayer {
   export const CAPABILITY_DISLIKE: Capability;
   export const CAPABILITY_BOOKMARK: Capability;
 
-  export const PITCH_ALGORITHM_LINEAR: PitchAlgorithm;
-  export const PITCH_ALGORITHM_MUSIC: PitchAlgorithm;
-  export const PITCH_ALGORITHM_VOICE: PitchAlgorithm;
-  
-  export const TrackPlayerEvents: {
-    REMOTE_PLAY: EventType;
-    REMOTE_PLAY_ID: EventType;
-    REMOTE_PLAY_SEARCH: EventType;
-    REMOTE_PAUSE: EventType;
-    REMOTE_STOP: EventType;
-    REMOTE_SKIP: EventType;
-    REMOTE_NEXT: EventType;
-    REMOTE_PREVIOUS: EventType;
-    REMOTE_SEEK: EventType;
-    REMOTE_SET_RATING: EventType;
-    REMOTE_JUMP_FORWARD: EventType;
-    REMOTE_JUMP_BACKWARD: EventType;
-    REMOTE_DUCK: EventType;
-    REMOTE_LIKE: EventType;
-    REMOTE_DISLIKE: EventType;
-    REMOTE_BOOKMARK: EventType;
-    PLAYBACK_STATE: EventType;
-    PLAYBACK_TRACK_CHANGED: EventType;
-    PLAYBACK_QUEUE_ENDED: EventType;
-    PLAYBACK_ERROR: EventType;
-    PLAYBACK_METADATA_RECEIVED: EventType;
-  };
-
-  // Hooks
-  export function usePlaybackState(): State;
-  export function useTrackPlayerEvents(
-    events: string[],
-    handler: (event: any) => void
-  ): void;
-  export function useInterval(callback: () => void, delay: number): void;
-  export function useWhenPlaybackStateChanges(callback: () => void): void;
-  export function usePlaybackStateIs(...states: State[]): boolean;
-  export function useTrackPlayerProgress(
-    interval?: number,
-    pollTrackPlayerStates?: State[],
-  ): ProgressComponentState;
 }
